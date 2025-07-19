@@ -38,6 +38,8 @@ dependencies {
     intellijPlatform {
         create(properties("platformType"), properties("platformVersion"))
 
+        bundledModule("intellij.platform.lvcs.impl")
+
         // Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
         bundledPlugins(properties("platformBundledPlugins").map { it.split(',') })
 

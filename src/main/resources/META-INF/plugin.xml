@@ -23,6 +23,9 @@ limitations under the License.
     <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
+    <!--FeatRacer Integration dependencies -->
+    <depends>com.intellij.modules.vcs</depends>
+    <depends>Git4Idea</depends> <!--This shouldnt be necessary but for some reason it doesnt work without -->
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- &begin[HAnS::FeatureModel] -->
@@ -131,6 +134,9 @@ limitations under the License.
         <projectService serviceImplementation="se.isselab.HAnS.pluginExtensions.ProjectMetricsService" serviceInterface="se.isselab.HAnS.pluginExtensions.MetricsService"/>
         <projectService serviceImplementation="se.isselab.HAnS.pluginExtensions.FeatureHighlighterService" serviceInterface="se.isselab.HAnS.pluginExtensions.HighlighterService"/>
         <iw.actionProvider implementation="se.isselab.HAnS.trafficLight.HansTrafficLightActionProvider"/>
+
+        <!-- FeatRacer implementation -->
+        <checkinHandlerFactory implementation="featracer.commitwatch.CommitCheckinHandlerFactory"/>
     </extensions>
 
 
