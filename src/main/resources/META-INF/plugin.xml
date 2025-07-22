@@ -137,6 +137,11 @@ limitations under the License.
 
         <!-- FeatRacer implementation -->
         <checkinHandlerFactory implementation="featracer.commitwatch.CommitCheckinHandlerFactory"/>
+        <projectService serviceImplementation="featracer.data.FeatRacerStateService"/>
+        <postStartupActivity implementation="featracer.activity.InitializationActivity"/>
+
+        <notificationGroup id="featracer.initialization" displayType="STICKY_BALLOON"/>
+
     </extensions>
 
 
