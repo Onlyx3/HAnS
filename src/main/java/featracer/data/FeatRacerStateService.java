@@ -17,6 +17,8 @@ import org.jetbrains.annotations.Nullable;
 public class FeatRacerStateService implements PersistentStateComponent<FeatRacerStateService> {
 
     public boolean isInitialized = false;
+    public String allowedFileExtensions;
+    public String analysisDirPath;
 
 
     public static FeatRacerStateService getInstance(@NotNull Project project) {
