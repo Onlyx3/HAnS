@@ -26,6 +26,7 @@ limitations under the License.
     <!--FeatRacer Integration dependencies -->
     <depends>com.intellij.modules.vcs</depends>
     <depends>Git4Idea</depends> <!--This shouldnt be necessary but for some reason it doesnt work without -->
+    <depends>com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- &begin[HAnS::FeatureModel] -->
