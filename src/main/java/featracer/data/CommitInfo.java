@@ -1,4 +1,4 @@
-package featracer.commitwatch;
+package featracer.data;
 
 import com.intellij.openapi.vcs.CheckinProjectPanel;
 

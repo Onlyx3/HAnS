@@ -1,6 +1,7 @@
-package featracer.commitwatch;
+package featracer.commitwatch.pubsub;
 
 import com.intellij.openapi.components.Service;
+import featracer.data.CommitInfo;
 
 import java.util.ArrayList;
 import java.util.List;

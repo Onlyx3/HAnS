@@ -1,4 +1,6 @@
-package featracer.commitwatch;
+package featracer.commitwatch.pubsub;
+
+import featracer.data.CommitInfo;
 
 public interface CommitListener {
 
