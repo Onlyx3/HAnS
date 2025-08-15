@@ -80,7 +80,9 @@ public class RecommendationDialog extends DialogWrapper {
 
     @Override
     protected void dispose() {
-        if (codeEditor != null && !codeEditor.isDisposed()) EditorFactory.getInstance().releaseEditor(codeEditor); //Prevents memory leaks
+        if (codeEditor != null && !codeEditor.isDisposed()) EditorFactory.getInstance().releaseEditor(codeEditor);
+        if(startAnnotation != null) startAnnotation.dispose();
+        if(endAnnotation != null)  endAnnotation.dispose();
 
         super.dispose();
     }
@@ -114,10 +116,38 @@ public class RecommendationDialog extends DialogWrapper {
     }
 
     private void initializeAnnotations(String featureString, boolean isMultiline){
+        Document document = codeEditor.getDocument();
+        int startOffset = codeFragment.getTextRange().getStartOffset();
+        int endOffset = codeFragment.getTextRange().getEndOffset();
 
+        if(isMultiline) {
+            String start = String.format("\\\\&begin[%s]\n", featureString);
+            String end = String.format("\\\\&end[%s]", featureString);
+            document.insertString(endOffset, end);
+            endAnnotation = document.createRangeMarker(endOffset + 1, endOffset + end.length());
+            document.insertString(startOffset, start);
+            startAnnotation = document.createRangeMarker(startOffset, startOffset + start.length() - 1);
+        } else {
+            String text  = String.format("\\\\&line[%s]", featureString);
+            document.insertString(startOffset, text);
+            startAnnotation = document.createRangeMarker(startOffset, startOffset + text.length() - 1);
+        }
+        startAnnotation.setGreedyToLeft(true);
+        if(endAnnotation != null) endAnnotation.setGreedyToRight(true);
     }
 
     private void removeAnnotations() {
+        Document document = codeEditor.getDocument();
 
+        if(endAnnotation != null && endAnnotation.isValid()) {
+            document.deleteString(endAnnotation.getStartOffset(), endAnnotation.getEndOffset());
+            endAnnotation.dispose();
+            endAnnotation = null;
+        }
+        if(startAnnotation != null && startAnnotation.isValid()) {
+            document.deleteString(startAnnotation.getStartOffset(), startAnnotation.getEndOffset());
+            startAnnotation.dispose();
+            startAnnotation = null;
+        }
     }
 }
