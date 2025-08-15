@@ -2,6 +2,8 @@ package featracer.activity;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.ProjectActivity;
+import featracer.commitwatch.FeatRacerCommitListener;
+import featracer.commitwatch.pubsub.CommitWatcher;
 import featracer.data.FeatRacerStateService;
 import featracer.logic.ClassifierManager;
 import featracer.notifications.InitNotification;
@@ -23,6 +25,8 @@ public class InitializationActivity implements ProjectActivity {
             InitNotification.show(project);
         }
 
+        //Register Listener
+        project.getService(CommitWatcher.class).registerListener(new FeatRacerCommitListener());
 
         return null;
     }

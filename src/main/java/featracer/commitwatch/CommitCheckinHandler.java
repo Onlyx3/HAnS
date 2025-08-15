@@ -2,6 +2,8 @@ package featracer.commitwatch;
 
 import com.intellij.openapi.vcs.CheckinProjectPanel;
 import com.intellij.openapi.vcs.checkin.CheckinHandler;
+import featracer.commitwatch.pubsub.CommitWatcher;
+import featracer.data.CommitInfo;
 
 
 public class CommitCheckinHandler extends CheckinHandler {
