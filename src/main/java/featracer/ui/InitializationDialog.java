@@ -2,18 +2,19 @@ package featracer.ui;
 
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.JBIntSpinner;
-import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import featracer.data.FeatRacerStateService;
+import featracer.data.RecommendationData;
 import featracer.logic.ClassifierManager;
+import featracer.util.Utility;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 
 public class InitializationDialog extends DialogWrapper {
 
@@ -64,10 +65,12 @@ public class InitializationDialog extends DialogWrapper {
         state.analysisDirPath = analysisDir.getText();
 
         // Call the API method to initialize
-        ClassifierManager
+        List<RecommendationData> recommendations= ClassifierManager
                 .getInstance(project)
                 .getStrategy()
                 .initializeProject(project.getProjectFilePath(), startingCommit, analysisDir.getText(), allowedFileExtensions.getText());
+
+        Utility.checkAndInvokeRecommendationWizard(project, recommendations);
 
     }
 

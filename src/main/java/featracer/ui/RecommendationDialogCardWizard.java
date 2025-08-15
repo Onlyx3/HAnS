@@ -21,7 +21,7 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
     private JButton previousButton;
     private JButton nextButton;
 
-    protected RecommendationDialogCardWizard(@Nullable Project project, @NotNull List<RecommendationData> recommendations) {
+    public RecommendationDialogCardWizard(@Nullable Project project, @NotNull List<RecommendationData> recommendations) {
         super(project, true);
         this.project = project;
         this.recommendations = recommendations;
@@ -37,6 +37,7 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
         for(int i = 0 ; i < recommendations.size(); i++) {
             RecommendationData rec = recommendations.get(i);
             JComponent panelStep = new RecommendationDialog(project, rec.getElement(), rec.getFeatures()).createCenterPanel();
+            if(panelStep == null) continue;
             panel.add(panelStep, String.valueOf(i));
         }
 
