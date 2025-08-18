@@ -52,7 +52,7 @@ public class Utility {
 
                     if (lineNumber > document.getLineCount()) return null;
 
-                    return psiFile.findElementAt(document.getLineStartOffset(lineNumber - 1));
+                    return psiFile.findElementAt(document.getLineStartOffset(lineNumber));
 
                 }
         );
