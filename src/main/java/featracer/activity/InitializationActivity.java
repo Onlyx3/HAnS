@@ -7,6 +7,7 @@ import featracer.commitwatch.pubsub.CommitWatcher;
 import featracer.data.FeatRacerStateService;
 import featracer.logic.ClassifierManager;
 import featracer.notifications.InitNotification;
+import featracer.test.FeatRacerTest;
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,9 @@ public class InitializationActivity implements ProjectActivity {
 
         //Register Listener
         project.getService(CommitWatcher.class).registerListener(new FeatRacerCommitListener());
+
+        // Test
+        FeatRacerTest.show(project);
 
         return null;
     }
