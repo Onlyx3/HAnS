@@ -36,6 +36,7 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
 
         for(int i = 0 ; i < recommendations.size(); i++) {
             RecommendationData rec = recommendations.get(i);
+            if(rec.getElement() == null || rec.getFeatures().isEmpty()) continue;
             JComponent panelStep = new RecommendationDialog(project, rec.getElement(), rec.getFeatures()).createCenterPanel();
             if(panelStep == null) continue;
             panel.add(panelStep, String.valueOf(i));

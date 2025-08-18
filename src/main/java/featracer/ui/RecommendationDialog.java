@@ -54,6 +54,7 @@ public class RecommendationDialog extends DialogWrapper {
             JCheckBox checkBox = new JCheckBox(s);
             checkBox.addActionListener(e -> checkBoxStateChange());
             checkBoxes.add(checkBox);
+            checkBoxPanel.add(checkBox);
         }
         panel.add(checkBoxPanel, BorderLayout.NORTH);
 
@@ -105,12 +106,12 @@ public class RecommendationDialog extends DialogWrapper {
             return;
         }
         Document document = codeEditor.getDocument();
-        String updatedAnnotation = isMultiline ? String.format("\\\\&begin[%s]", featureString) : String.format("\\\\&line[%s]", featureString);
+        String updatedAnnotation = isMultiline ? String.format("//&begin[%s]", featureString) : String.format("//&line[%s]", featureString);
         document.replaceString(startAnnotation.getStartOffset(), startAnnotation.getEndOffset(), updatedAnnotation);
 
         if(isMultiline) {
             if(endAnnotation == null || !endAnnotation.isValid()) throw new IllegalStateException();
-            String updatedAnnotationEnd = String.format("\\\\&end[%s]", featureString);
+            String updatedAnnotationEnd = String.format("//&end[%s]", featureString);
             document.replaceString(endAnnotation.getStartOffset(), endAnnotation.getEndOffset(), updatedAnnotationEnd);
         }
     }
@@ -121,16 +122,16 @@ public class RecommendationDialog extends DialogWrapper {
         int endOffset = codeFragment.getTextRange().getEndOffset();
 
         if(isMultiline) {
-            String start = String.format("\\\\&begin[%s]\n", featureString);
-            String end = String.format("\\\\&end[%s]", featureString);
+            String start = String.format("//&begin[%s]\n", featureString);
+            String end = String.format("//&end[%s]", featureString);
             document.insertString(endOffset, end);
-            endAnnotation = document.createRangeMarker(endOffset + 1, endOffset + end.length());
+            endAnnotation = document.createRangeMarker(endOffset, endOffset + end.length());
             document.insertString(startOffset, start);
-            startAnnotation = document.createRangeMarker(startOffset, startOffset + start.length() - 1);
+            startAnnotation = document.createRangeMarker(startOffset, startOffset + start.length());
         } else {
-            String text  = String.format("\\\\&line[%s]", featureString);
+            String text  = String.format("//&line[%s]", featureString);
             document.insertString(startOffset, text);
-            startAnnotation = document.createRangeMarker(startOffset, startOffset + text.length() - 1);
+            startAnnotation = document.createRangeMarker(startOffset, startOffset + text.length());
         }
         startAnnotation.setGreedyToLeft(true);
         if(endAnnotation != null) endAnnotation.setGreedyToRight(true);
