@@ -38,7 +38,7 @@ public class FeatRacerTest {
         testfeatures.add("Max Mustermann");
         testfeatures.add("Payment");
         testfeatures.add("MirgehendieIdeenAus");
-        testfeatures.add("UnfassbarlangernameumzuschauenwiesinderUIaussehenwird");
+        testfeatures.add("Unfassbarlangername");
         testfeatures.add("coconut");
         testfeatures.add("Last");
         testfeatures.add("Bittebittezeigdashiernichtan");

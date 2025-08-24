@@ -2,20 +2,24 @@ package featracer.ui;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.Disposer;
 import featracer.data.RecommendationData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class RecommendationDialogCardWizard extends DialogWrapper {
 
     private final Project project;
     private final List<RecommendationData> recommendations;
+    private final List<RecommendationDialogPanel>  panels = new ArrayList<>();
 
     private int current = 0;
+    private int panelCount = 0;
     private JPanel panel;
     private CardLayout cardLayout;
     private JButton previousButton;
@@ -37,13 +41,22 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
         for(int i = 0 ; i < recommendations.size(); i++) {
             RecommendationData rec = recommendations.get(i);
             if(rec.getElement() == null || rec.getFeatures().isEmpty()) continue;
-            JComponent panelStep = new RecommendationDialog(project, rec.getElement(), rec.getFeatures()).createCenterPanel();
-            if(panelStep == null) continue;
+            //JComponent panelStep = new RecommendationDialogPanel(project, rec.getElement(), rec.getFeatures()).createCenterPanel();
+            RecommendationDialogPanel panelStep = new RecommendationDialogPanel(project, rec.getElement(), rec.getFeatures());
+            panels.add(panelStep);
             panel.add(panelStep, String.valueOf(i));
+            panelCount++;
         }
-
-        cardLayout.show(panel, "0");
+        if(!panels.isEmpty()) cardLayout.show(panel, "0");
         return panel;
+    }
+
+    @Override
+    protected void dispose() {
+        for(RecommendationDialogPanel panel : panels) {
+            Disposer.dispose(panel);
+        }
+        super.dispose();
     }
 
     @NotNull
@@ -71,7 +84,7 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
         }
     }
     private void next() {
-        if(current < recommendations.size() - 1) {
+        if(current < panelCount - 1) {
             current++;
             cardLayout.show(panel, String.valueOf(current));
             updateButton();
@@ -83,7 +96,7 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
     private void updateButton() {
         previousButton.setEnabled(current > 0);
 
-        if(current == recommendations.size() - 1) {
+        if(current == panelCount - 1) {
             nextButton.setText("Done");
         } else nextButton.setText("Next");
     }
