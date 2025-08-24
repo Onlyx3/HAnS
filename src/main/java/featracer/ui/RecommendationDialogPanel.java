@@ -40,16 +40,20 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
     private boolean internalUpdate = false;
 
     private PsiElement codeFragmentEnd;
-    private boolean isCodeBlock; //TODO: Change how psiElems are read
+    private boolean isCodeBlock;
+    private int blockStartOffset;
+    private int blockEndOffset;
 
     private enum AnnotationSource {
         START, END
     }
 
-    public RecommendationDialogPanel(@Nullable Project project, @NotNull PsiElement psiElement, @NotNull List<String> recommendations) {
+    public RecommendationDialogPanel(@Nullable Project project, @NotNull PsiElement psiElement, @NotNull List<String> recommendations, @Nullable PsiElement psiElementEnd, @NotNull boolean isCodeBlock) {
         super(new BorderLayout());
         this.project = project;
         this.codeFragment = psiElement;
+        this.isCodeBlock = isCodeBlock;
+        this.codeFragmentEnd = psiElementEnd;
         this.recommendations = recommendations.size() > 8 ? recommendations.subList(0, 8) : recommendations;
         checkBoxes = new ArrayList<>();
 
@@ -89,6 +93,13 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
         if (document == null) {
             add(new JLabel("Document not found"), BorderLayout.CENTER);
             return;
+        }
+
+        if(isCodeBlock){
+            int startLine = document.getLineNumber(codeFragment.getTextRange().getStartOffset());
+            int endLine = document.getLineNumber(codeFragmentEnd.getTextRange().getEndOffset());
+            this.blockStartOffset = document.getLineStartOffset(startLine);
+            this.blockEndOffset = document.getLineEndOffset(endLine);
         }
 
        // codeEditor = EditorFactory.getInstance().createEditor(document, project);
@@ -138,7 +149,6 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
                 else initializeAnnotations(finalContent);
             }
 
-
         });
     }
 
@@ -149,7 +159,7 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
 
     private void updateExistingBlock(String content) {
         Document document = codeEditor.getDocument();
-        String begin = "//&begin[" + content + "]";
+        String begin = "//&begin[" + content + "]\n";
         String end = "//&end[" + content + "]";
 
         if(endAnnotation != null && endAnnotation.isValid()) {
@@ -176,7 +186,6 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
     private void initializeLine(String featureString){
         Document document = codeEditor.getDocument();
         int startOffset = codeFragment.getTextRange().getStartOffset();
-        int endOffset = codeFragment.getTextRange().getEndOffset();
 
         String text = String.format(" //&line[%s]", featureString);
         document.insertString(startOffset, text);
@@ -186,15 +195,17 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
 
     private void initializeBlock(String featureString){
         Document document = codeEditor.getDocument();
-        int startOffset = codeFragment.getTextRange().getStartOffset();
-        int endOffset = codeFragmentEnd.getTextRange().getStartOffset();
+
 
         String start = String.format("//&begin[%s]\n", featureString);
         String end = String.format("//&end[%s]", featureString);
-        document.insertString(endOffset, end);
-        endAnnotation = document.createRangeMarker(endOffset, endOffset + end.length());
-        document.insertString(startOffset, start);
-        startAnnotation = document.createRangeMarker(startOffset, startOffset + start.length());
+
+        document.insertString(blockEndOffset, end);
+        endAnnotation = document.createRangeMarker(blockEndOffset, blockEndOffset + end.length());
+
+        document.insertString(blockStartOffset, start);
+        startAnnotation = document.createRangeMarker(blockStartOffset, blockStartOffset + start.length());
+
         startAnnotation.setGreedyToLeft(true);
         endAnnotation.setGreedyToRight(true);
     }
@@ -214,5 +225,9 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
             startAnnotation.dispose();
             startAnnotation = null;
         }
+    }
+
+    public PsiElement getElement() {
+        return codeFragment;
     }
 }

@@ -1,8 +1,12 @@
 package featracer.ui;
 
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import featracer.data.RecommendationData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +34,7 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
         this.project = project;
         this.recommendations = recommendations;
         setTitle("Recommendations");
+        setModal(false);
         init();
     }
 
@@ -42,7 +47,7 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
             RecommendationData rec = recommendations.get(i);
             if(rec.getElement() == null || rec.getFeatures().isEmpty()) continue;
             //JComponent panelStep = new RecommendationDialogPanel(project, rec.getElement(), rec.getFeatures()).createCenterPanel();
-            RecommendationDialogPanel panelStep = new RecommendationDialogPanel(project, rec.getElement(), rec.getFeatures());
+            RecommendationDialogPanel panelStep = new RecommendationDialogPanel(project, rec.getElement(), rec.getFeatures(), rec.getElementEnd(), rec.isCodeBlock());
             panels.add(panelStep);
             panel.add(panelStep, String.valueOf(i));
             panelCount++;
@@ -68,12 +73,32 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
         previousButton.addActionListener(e -> previous());
         nextButton.addActionListener(e -> next());
 
+        JButton viewButton = new JButton("View in Editor");
+        viewButton.addActionListener(e -> viewInEditorAction());
+
         JPanel panelButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panelButtons.add(viewButton);
         panelButtons.add(previousButton);
         panelButtons.add(nextButton);
         
         updateButton();
         return panelButtons;
+    }
+
+    private void viewInEditorAction() {
+        RecommendationDialogPanel panelStep = panels.get(current);
+        PsiElement element = panelStep.getElement();
+        if(element == null || !element.isValid()) return;
+
+        PsiFile  file = element.getContainingFile();
+        if(file == null) return;
+        VirtualFile virtualFile = file.getVirtualFile();
+        if(virtualFile == null) return;
+
+        int offset = element.getTextRange().getStartOffset();
+        OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, offset);
+
+        descriptor.navigate(true);
     }
 
     private void previous() {

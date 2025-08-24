@@ -43,17 +43,19 @@ public class FeatRacerTest {
         testfeatures.add("Last");
         testfeatures.add("Bittebittezeigdashiernichtan");
 
-        RecommendationData testBlock = new RecommendationData(Utility.findPsiElementFromLocation(project, "featracer.test.FeatRacerTest:23"), testfeatures);
-        RecommendationData testLine = new RecommendationData(Utility.findPsiElementFromLocation(project, "featracer.test.FeatRacerTest:37"), testfeatures);
-        RecommendationData outOfBounds = new RecommendationData(Utility.findPsiElementFromLocation(project, "featracer.test.FeatRacerTest:2222"), testfeatures);
-        RecommendationData classpathinvalid = new RecommendationData(Utility.findPsiElementFromLocation(project, "thisdoesntexist:2"), testfeatures);
-      //  RecommendationData wrongFormat = new RecommendationData(Utility.findPsiElementFromLocation(project, "56:featracer.test.FeatRacerTest"), testfeatures);
+    //    RecommendationData testBlock = Utility.makeRecommendationData(project, "featracer.test.FeatRacerTest:23-28", testfeatures);
+    //    RecommendationData testLine = Utility.makeRecommendationData(project, "featracer.test.FeatRacerTest:37", testfeatures);
+    //    RecommendationData outOfBounds = Utility.makeRecommendationData(project, "featracer.test.FeatRacerTest:2222",  testfeatures);
+    //    RecommendationData classpathinvalid = Utility.makeRecommendationData(project, "thisdoesntexist:2", testfeatures);
+        RecommendationData testBlock = Utility.translateFeatracerLocation(project, "test/testing/FeatRacerTest.java::23-28", testfeatures);
+        RecommendationData testLine = Utility.translateFeatracerLocation(project, "ihopethisisirrelevant/FeatRacerTest.java::37", testfeatures);
+
 
         List<RecommendationData> list = new ArrayList<>();
         list.add(testLine);
         list.add(testBlock);
-        list.add(outOfBounds);
-        list.add(classpathinvalid);
+    //    list.add(outOfBounds);
+    //    list.add(classpathinvalid);
      //   list.add(wrongFormat);
 
         Utility.checkAndInvokeRecommendationWizard(project, list);
