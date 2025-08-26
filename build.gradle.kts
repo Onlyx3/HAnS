@@ -33,6 +33,8 @@ repositories {
 
 // Dependencies are managed with Gradle version catalog - read more: https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog
 dependencies {
+    implementation("se.gu:featracerapi:1.0.0")
+    implementation("org.xerial:sqlite-jdbc:3.49.1.0")
     testImplementation(libs.junit)
     testImplementation("org.opentest4j:opentest4j:1.3.0")
     intellijPlatform {

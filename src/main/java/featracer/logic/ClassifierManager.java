@@ -5,7 +5,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 @Service(Service.Level.PROJECT)
-public class ClassifierManager {
+public final class ClassifierManager {
 
     private ClassifierStrategy strategy;
 

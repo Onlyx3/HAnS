@@ -6,6 +6,7 @@ import featracer.commitwatch.FeatRacerCommitListener;
 import featracer.commitwatch.pubsub.CommitWatcher;
 import featracer.data.FeatRacerStateService;
 import featracer.logic.ClassifierManager;
+import featracer.logic.FeatRacerStrategy;
 import featracer.notifications.InitNotification;
 import featracer.test.FeatRacerTest;
 import kotlin.Unit;
@@ -18,7 +19,7 @@ public class InitializationActivity implements ProjectActivity {
     public @Nullable Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
 
         //TODO: Set Strategy to FeatRacer
-      //  ClassifierManager.getInstance(project).setStrategy();
+        ClassifierManager.getInstance(project).setStrategy(new FeatRacerStrategy(project));
 
         FeatRacerStateService state = FeatRacerStateService.getInstance(project);
 
