@@ -37,9 +37,9 @@ public class FeatRacerTest {
         testfeatures.add("IceCream");
         testfeatures.add("Max Mustermann");
         testfeatures.add("Payment");
-        testfeatures.add("MirgehendieIdeenAus");
-        testfeatures.add("Unfassbarlangername");
-        testfeatures.add("coconut");
+        testfeatures.add("Food");
+        testfeatures.add("Coordinates");
+        testfeatures.add("Puppies");
         testfeatures.add("Last");
         testfeatures.add("Bittebittezeigdashiernichtan");
 
@@ -47,8 +47,8 @@ public class FeatRacerTest {
     //    RecommendationData testLine = Utility.makeRecommendationData(project, "featracer.test.FeatRacerTest:37", testfeatures);
     //    RecommendationData outOfBounds = Utility.makeRecommendationData(project, "featracer.test.FeatRacerTest:2222",  testfeatures);
     //    RecommendationData classpathinvalid = Utility.makeRecommendationData(project, "thisdoesntexist:2", testfeatures);
-        RecommendationData testBlock = Utility.translateFeatracerLocation(project, "test/testing/FeatRacerTest.java::23-28", testfeatures);
-        RecommendationData testLine = Utility.translateFeatracerLocation(project, "ihopethisisirrelevant/FeatRacerTest.java::37", testfeatures);
+        RecommendationData testBlock = Utility.translateFeatracerLocation(project, "test/testing/FeatRacerTest.java::67-68", testfeatures);
+        RecommendationData testLine = Utility.translateFeatracerLocation(project, "ihopethisisirrelevant/FeatRacerTest.java::70", testfeatures);
 
 
         List<RecommendationData> list = new ArrayList<>();
@@ -59,5 +59,19 @@ public class FeatRacerTest {
      //   list.add(wrongFormat);
 
         Utility.checkAndInvokeRecommendationWizard(project, list);
+    }
+
+
+    private void testFunction() {
+
+        int x = 1337;
+        int y = 42;
+
+        process();
+
+    }
+
+    private void process() {
+        //do nothing
     }
 }
