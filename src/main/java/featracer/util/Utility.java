@@ -93,7 +93,7 @@ public class Utility {
                         Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
                         if (document == null || startLine > document.getLineCount()) return null;
                         PsiElement startElem =  psiFile.findElementAt(document.getLineStartOffset(startLine));
-                        PsiElement endElem =  psiFile.findElementAt(document.getLineEndOffset(startLine));
+                        PsiElement endElem =  psiFile.findElementAt(document.getLineStartOffset(endLine));
                         return new PsiElement[]{startElem, endElem};
             }
             );

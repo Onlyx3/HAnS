@@ -97,7 +97,7 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
 
         if(isCodeBlock){
             int startLine = document.getLineNumber(codeFragment.getTextRange().getStartOffset());
-            int endLine = document.getLineNumber(codeFragmentEnd.getTextRange().getEndOffset());
+            int endLine = document.getLineNumber(codeFragmentEnd.getTextRange().getStartOffset());
             this.blockStartOffset = document.getLineStartOffset(startLine);
             this.blockEndOffset = document.getLineEndOffset(endLine);
         }
@@ -159,8 +159,8 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
 
     private void updateExistingBlock(String content) {
         Document document = codeEditor.getDocument();
-        String begin = "//&begin[" + content + "]\n";
-        String end = "//&end[" + content + "]";
+        String begin = "\t//&begin[" + content + "]\n";
+        String end = "\n\t//&end[" + content + "]";
 
         if(endAnnotation != null && endAnnotation.isValid()) {
             document.replaceString(endAnnotation.getStartOffset(), endAnnotation.getEndOffset(), end);
@@ -197,8 +197,8 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
         Document document = codeEditor.getDocument();
 
 
-        String start = String.format("//&begin[%s]\n", featureString);
-        String end = String.format("//&end[%s]", featureString);
+        String start = String.format("\t//&begin[%s]\n", featureString);
+        String end = String.format("\n\t//&end[%s]", featureString);
 
         document.insertString(blockEndOffset, end);
         endAnnotation = document.createRangeMarker(blockEndOffset, blockEndOffset + end.length());
