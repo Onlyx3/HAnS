@@ -1,5 +1,6 @@
 package featracer.ui;
 
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -14,6 +15,8 @@ import featracer.util.Utility;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class InitializationDialog extends DialogWrapper {
@@ -57,18 +60,26 @@ public class InitializationDialog extends DialogWrapper {
     @Override
     protected void doOKAction() {
         int startingCommit = this.intSpinner.getNumber();
-
         super.doOKAction(); //Closes the dialog
+
+        String projectPath = project.getBasePath();
+        String analysisPath = Paths.get(PathManager.getSystemPath(), "featracer-analysis", project.getName()).toString();
+
+        System.out.println("AnalysisPath: "  + analysisPath);
+
 
         FeatRacerStateService state = FeatRacerStateService.getInstance(project);
         state.allowedFileExtensions = allowedFileExtensions.getText();
-        state.analysisDirPath = analysisDir.getText();
+        state.analysisDirPath = analysisPath;//analysisDir.getText();
 
         // Call the API method to initialize
         List<RecommendationData> recommendations= ClassifierManager
                 .getInstance(project)
                 .getStrategy()
-                .initializeProject(project.getProjectFilePath(), startingCommit, analysisDir.getText(), allowedFileExtensions.getText());
+                .initializeProject(projectPath,
+                        startingCommit,
+                        analysisPath, //analysisDir.getText()
+                        allowedFileExtensions.getText());
 
         Utility.checkAndInvokeRecommendationWizard(project, recommendations);
 
