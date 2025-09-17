@@ -41,12 +41,21 @@ public class FeatRacerStrategy implements ClassifierStrategy{
 
     @Override
     public List<RecommendationData> invoke(String commitHash) {
+        String projectPath = project.getBasePath();
+        if(projectPath == null) {
+            throw new RuntimeException("Project path not found during featracer invocation");
+        }
+        String projectGitPath = Paths.get(projectPath, ".git").toString();
+        File gitDir = new File(projectGitPath);
+        if(!gitDir.exists() || !gitDir.isDirectory()){
+            throw new RuntimeException("Project Git directory does not exist or is not a directory");
+        }
 
         FeatRacerAPI featRacerAPI = new FeatRacerAPI();
         FeatRacerStateService  featRacerStateService = FeatRacerStateService.getInstance(project);
         Map<String, List<String>> result;
         try {
-            result = featRacerAPI.invokeFeatRacer(project.getProjectFilePath(),
+            result = featRacerAPI.invokeFeatRacer(projectGitPath,
                     featRacerStateService.analysisDirPath,
                     featRacerStateService.allowedFileExtensions,
                     commitHash);
