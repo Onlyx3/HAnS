@@ -1,5 +1,6 @@
 package featracer.logic;
 
+import com.intellij.openapi.progress.ProgressIndicator;
 import featracer.data.RecommendationData;
 
 import java.util.List;

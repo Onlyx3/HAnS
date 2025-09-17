@@ -155,6 +155,7 @@ public class Utility {
 
     public static void checkAndInvokeRecommendationWizard(Project project, List<RecommendationData> list) {
         if(!list.isEmpty()) new RecommendationDialogCardWizard(project, list).show();
+        else System.out.print("No new recommendations found :)");
     }
 
     public static String getLatestCommitHash(CheckinProjectPanel panel) {

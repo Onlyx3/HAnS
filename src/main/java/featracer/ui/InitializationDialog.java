@@ -2,6 +2,9 @@ package featracer.ui;
 
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -12,6 +15,7 @@ import featracer.data.FeatRacerStateService;
 import featracer.data.RecommendationData;
 import featracer.logic.ClassifierManager;
 import featracer.util.Utility;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -72,16 +76,26 @@ public class InitializationDialog extends DialogWrapper {
         state.allowedFileExtensions = allowedFileExtensions.getText();
         state.analysisDirPath = analysisPath;//analysisDir.getText();
 
-        // Call the API method to initialize
-        List<RecommendationData> recommendations= ClassifierManager
-                .getInstance(project)
-                .getStrategy()
-                .initializeProject(projectPath,
-                        startingCommit,
-                        analysisPath, //analysisDir.getText()
-                        allowedFileExtensions.getText());
 
-        Utility.checkAndInvokeRecommendationWizard(project, recommendations);
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Running FeatRacer..."){
+            List<RecommendationData> recommendations;
+
+            public void run(@NotNull ProgressIndicator indicator) {
+                indicator.setFraction(0.0);
+                recommendations = ClassifierManager
+                        .getInstance(project)
+                        .getStrategy()
+                        .initializeProject(projectPath,
+                                startingCommit,
+                                analysisPath, //analysisDir.getText()
+                                allowedFileExtensions.getText());
+                indicator.setFraction(1.0);
+            }
+            public void onSuccess() {
+                state.isInitialized = true;
+                Utility.checkAndInvokeRecommendationWizard(project, recommendations);
+            }
+        });
 
     }
 
