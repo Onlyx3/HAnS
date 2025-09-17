@@ -166,14 +166,21 @@ public class Utility {
         GitRepositoryManager  repositoryManager = GitRepositoryManager.getInstance(project);
 
        for(VirtualFile commitedFile : commitedFiles) {
-           VcsRoot root = vcsManager.getVcsRootObjectFor(commitedFile);
+           GitRepository repo = repositoryManager.getRepositoryForFileQuick(commitedFile);
+           if(repo != null) {
+               System.out.println("Found commit hash");
+               return repo.getCurrentRevision();
+           }
+      /*     VcsRoot root = vcsManager.getVcsRootObjectFor(commitedFile);
            if(root != null) {
                GitRepository repo = repositoryManager.getRepositoryForRoot(commitedFile);
                if(repo != null) {
+                   System.out.println("Found commit hash");
                    return repo.getCurrentRevision();
                }
-           }
+           }*/
        }
+       System.out.println("No commit hash found");
        return null;
     }
 }
