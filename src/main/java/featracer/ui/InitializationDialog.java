@@ -26,13 +26,8 @@ import java.util.List;
 public class InitializationDialog extends DialogWrapper {
 
     private final Project project;
-    // This class currently displays a test of Elements that can be used
-    //private final ComboBox<String> testComboBox = new ComboBox<>(new String[]{"Test1", "Test2", "Test3"});
-    //private final TextFieldWithBrowseButton testTextField = new TextFieldWithBrowseButton();
-   // private final JBCheckBox extraFeatureCheckBox = new JBCheckBox("Whats this?");
 
     private final JBIntSpinner intSpinner = new JBIntSpinner(1, 1, Integer.MAX_VALUE);
-    private final TextFieldWithBrowseButton analysisDir = new TextFieldWithBrowseButton();
     private final JBTextField allowedFileExtensions = new JBTextField();
 
 
@@ -45,7 +40,6 @@ public class InitializationDialog extends DialogWrapper {
 
         allowedFileExtensions.setText(".js,.c,.cpp,.h,.cc,.y,.py,.java");
 
-        analysisDir.addBrowseFolderListener("Analysis Folder", null, project, FileChooserDescriptorFactory.createSingleFolderDescriptor());
         init();
     }
 
@@ -54,7 +48,7 @@ public class InitializationDialog extends DialogWrapper {
         return FormBuilder.createFormBuilder()
                 .addLabeledComponent("Allowed file extensions:", allowedFileExtensions)
                 .addLabeledComponent("Starting commit number", intSpinner, 1, false)
-                .addLabeledComponent("Analysis directory", analysisDir, 1, false)
+            //    .addLabeledComponent("Analysis directory", analysisDir, 1, false)
            //     .addLabeledComponent("Testing1", testComboBox, 1, false)
              //   .addLabeledComponent("TestingFile", testTextField, 1, false)
             //    .addComponent(extraFeatureCheckBox, 1)
