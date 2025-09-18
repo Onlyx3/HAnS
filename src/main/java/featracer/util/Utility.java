@@ -176,4 +176,9 @@ public class Utility {
        System.out.println("No commit hash found");
        return null;
     }
+
+    private static void addFeatureTest() { //does nothing just for test
+        int i = 1 + 1;
+        return;
+    }
 }
