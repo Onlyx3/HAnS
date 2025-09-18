@@ -25,14 +25,14 @@ public class FeatRacerCommitListener implements CommitListener {
 
         ClassifierStrategy strategy = ClassifierManager.getInstance(project).getStrategy();
 
-        String commitHash = Utility.getLatestCommitHash(info.getPanel());
-        if (commitHash == null) return;
 
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Running FeatRacer..."){
             List<RecommendationData> recommendations;
 
             public void run(@NotNull ProgressIndicator indicator) {
                 indicator.setFraction(0.0);
+                String commitHash = Utility.getLatestCommitHash(info.getPanel());
+                if (commitHash == null) return;
                 recommendations = strategy.invoke(commitHash);
                 indicator.setFraction(1.0);
             }

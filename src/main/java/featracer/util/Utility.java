@@ -13,6 +13,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
+import com.intellij.util.SlowOperations;
 import featracer.data.RecommendationData;
 import featracer.ui.RecommendationDialogCardWizard;
 import git4idea.repo.GitRepository;
@@ -171,14 +172,6 @@ public class Utility {
                System.out.println("Found commit hash");
                return repo.getCurrentRevision();
            }
-      /*     VcsRoot root = vcsManager.getVcsRootObjectFor(commitedFile);
-           if(root != null) {
-               GitRepository repo = repositoryManager.getRepositoryForRoot(commitedFile);
-               if(repo != null) {
-                   System.out.println("Found commit hash");
-                   return repo.getCurrentRevision();
-               }
-           }*/
        }
        System.out.println("No commit hash found");
        return null;
