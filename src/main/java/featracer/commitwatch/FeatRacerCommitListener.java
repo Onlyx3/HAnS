@@ -18,6 +18,9 @@ import java.util.List;
 public class FeatRacerCommitListener implements CommitListener {
     @Override
     public void onCommit(CommitInfo info) {
+        //Return if FeatRacer has not been initialized
+        if(!FeatRacerStateService.getInstance(info.getPanel().getProject()).isInitialized) return;
+
         System.out.println("A new commit was recognized. Attempting to invoke FeatRacer");
         Project project = info.getPanel().getProject();
 

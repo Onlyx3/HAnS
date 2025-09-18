@@ -1,5 +1,6 @@
 package featracer.activity;
 
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.ProjectActivity;
 import featracer.commitwatch.FeatRacerCommitListener;
@@ -18,20 +19,18 @@ public class InitializationActivity implements ProjectActivity {
     @Override
     public @Nullable Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
 
-        //TODO: Set Strategy to FeatRacer
-        ClassifierManager.getInstance(project).setStrategy(new FeatRacerStrategy(project));
+        DumbService.getInstance(project).runWhenSmart(() -> {
+            ClassifierManager.getInstance(project).setStrategy(new FeatRacerStrategy(project));
+            FeatRacerStateService state = FeatRacerStateService.getInstance(project);
+            if(!state.isInitialized) {
+                InitNotification.show(project);
+            }
+            //Register Listener
+            project.getService(CommitWatcher.class).registerListener(new FeatRacerCommitListener());
 
-        FeatRacerStateService state = FeatRacerStateService.getInstance(project);
-
-        if(!state.isInitialized) {
-            InitNotification.show(project);
-        }
-
-        //Register Listener
-        project.getService(CommitWatcher.class).registerListener(new FeatRacerCommitListener());
-
-        // Test
-        FeatRacerTest.show(project);
+            // Show notification to show test dialog
+            //FeatRacerTest.show(project);
+        });
 
         return null;
     }
