@@ -1,5 +1,6 @@
 package featracer.util;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -18,6 +19,8 @@ import featracer.data.RecommendationData;
 import featracer.ui.RecommendationDialogCardWizard;
 import git4idea.repo.GitRepository;
 import git4idea.repo.GitRepositoryManager;
+import se.isselab.HAnS.featureModel.psi.FeatureModelFeature;
+import se.isselab.HAnS.featureModel.psi.FeatureModelTypes;
 
 import java.io.File;
 import java.util.Collection;
@@ -177,8 +180,12 @@ public class Utility {
        return null;
     }
 
-    private static void addFeatureTest() { //does nothing just for test
-        int i = 1 + 1;
-        return;
+
+    public static PsiElement getNameIdentifier(FeatureModelFeature element) {
+        ASTNode node = element.getNode().findChildByType(FeatureModelTypes.FEATURENAME);
+        if (node != null) {
+            return node.getPsi();
+        }
+        return null;
     }
 }
