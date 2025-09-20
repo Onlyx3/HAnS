@@ -52,6 +52,7 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
             panel.add(panelStep, String.valueOf(i));
             panelCount++;
         }
+        System.out.print("Created Recommendation View for " + panelCount + " recommendations!");
         if(!panels.isEmpty()) cardLayout.show(panel, "0");
         return panel;
     }
@@ -105,6 +106,7 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
         if(current > 0) {
             current--;
             cardLayout.show(panel, String.valueOf(current));
+            panels.get(current).moveCodeEditor();
             updateButton();
         }
     }
@@ -112,6 +114,7 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
         if(current < panelCount - 1) {
             current++;
             cardLayout.show(panel, String.valueOf(current));
+            panels.get(current).moveCodeEditor();
             updateButton();
         } else {
             close(0);

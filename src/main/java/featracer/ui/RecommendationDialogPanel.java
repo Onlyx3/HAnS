@@ -125,6 +125,10 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
         if(endAnnotation != null)  endAnnotation.dispose();
     }
 
+    public void moveCodeEditor() {
+        int offset = codeFragment.getTextOffset();
+        codeEditor.getCaretModel().moveToOffset(offset);
+    }
 
 
     private void updateAnnotation() {

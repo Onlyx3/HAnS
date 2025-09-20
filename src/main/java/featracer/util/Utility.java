@@ -19,6 +19,7 @@ import featracer.data.RecommendationData;
 import featracer.ui.RecommendationDialogCardWizard;
 import git4idea.repo.GitRepository;
 import git4idea.repo.GitRepositoryManager;
+import org.jetbrains.annotations.NotNull;
 import se.isselab.HAnS.featureModel.psi.FeatureModelFeature;
 import se.isselab.HAnS.featureModel.psi.FeatureModelTypes;
 
@@ -58,9 +59,14 @@ public class Utility {
             if (lineString.contains("-")) {
                 String[] lineSplit = lineString.split("-");
                 if (lineSplit.length != 2) return null; //Wrong format
-                isCodeBlock = true;
-                startLine = Integer.parseInt(lineSplit[0]);
-                endLine = Integer.parseInt(lineSplit[1]);
+                if(lineSplit[0].equals(lineSplit[1])) {
+                    startLine = Integer.parseInt(lineString);
+                    endLine = startLine;
+                } else {
+                    isCodeBlock = true;
+                    startLine = Integer.parseInt(lineSplit[0]);
+                    endLine = Integer.parseInt(lineSplit[1]);
+                }
             } else {
                 startLine = Integer.parseInt(lineString);
                 endLine = startLine;
@@ -76,7 +82,7 @@ public class Utility {
             //Logic to find and return single lines
             PsiElement line = ApplicationManager.getApplication().runReadAction(
                     (Computable<PsiElement>) () -> {
-                        PsiClass psiClass = findPsiClassbyName(project, className);
+                       PsiClass psiClass = findPsiClassbyName(project, className);
                         if (psiClass == null || psiClass.getContainingFile() == null) return null;
                         PsiFile  psiFile = psiClass.getContainingFile();
                         Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
@@ -95,12 +101,14 @@ public class Utility {
                         if (psiClass == null || psiClass.getContainingFile() == null) return null;
                         PsiFile  psiFile = psiClass.getContainingFile();
                         Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
-                        if (document == null || startLine > document.getLineCount()) return null;
+                        if (document == null || startLine > document.getLineCount() || endLine > document.getLineCount()) return null;
                         PsiElement startElem =  psiFile.findElementAt(document.getLineStartOffset(startLine));
                         PsiElement endElem =  psiFile.findElementAt(document.getLineStartOffset(endLine));
                         return new PsiElement[]{startElem, endElem};
             }
             );
+
+            if (elements == null) return null;
             return new RecommendationData(elements[0], features, true, elements[1]);
         }
 
@@ -178,14 +186,5 @@ public class Utility {
        }
        System.out.println("No commit hash found");
        return null;
-    }
-
-
-    public static PsiElement getNameIdentifier(FeatureModelFeature element) {
-        ASTNode node = element.getNode().findChildByType(FeatureModelTypes.FEATURENAME);
-        if (node != null) {
-            return node.getPsi();
-        }
-        return null;
     }
 }
