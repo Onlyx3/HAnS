@@ -2,14 +2,11 @@ package featracer.ui;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.EditorFactory;
-import com.intellij.openapi.editor.RangeMarker;
+import com.intellij.openapi.editor.*;
+import com.intellij.openapi.editor.markup.*;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
+import com.intellij.psi.*;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +24,7 @@ import java.util.stream.Collectors;
 public class RecommendationDialogPanel extends JPanel implements Disposable {
 
     private final Project project;
-    private final PsiElement codeFragment;
+  //  private final PsiElement codeFragment;
     private final List<String> recommendations;
     private final List<JCheckBox> checkBoxes;
 
@@ -39,36 +36,51 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
 
     private boolean internalUpdate = false;
 
-    private PsiElement codeFragmentEnd;
+   // private PsiElement codeFragmentEnd;
     private boolean isCodeBlock;
     private int blockStartOffset;
     private int blockEndOffset;
+
+    private RangeHighlighter rangeHighlighter;
+
+    private final SmartPsiElementPointer<PsiElement> codeFragmentPointer;
+    private final SmartPsiElementPointer<PsiElement> codeFragmentEndPointer;
 
     private enum AnnotationSource {
         START, END
     }
 
-    public RecommendationDialogPanel(@Nullable Project project, @NotNull PsiElement psiElement, @NotNull List<String> recommendations, @Nullable PsiElement psiElementEnd, @NotNull boolean isCodeBlock) {
+    public RecommendationDialogPanel(@Nullable Project project, @NotNull PsiElement psiElement, @Nullable List<String> recommendations, @Nullable PsiElement psiElementEnd, @NotNull boolean isCodeBlock) {
         super(new BorderLayout());
         this.project = project;
-        this.codeFragment = psiElement;
+   //     this.codeFragment = psiElement;
         this.isCodeBlock = isCodeBlock;
-        this.codeFragmentEnd = psiElementEnd;
-        this.recommendations = recommendations.size() > 8 ? recommendations.subList(0, 8) : recommendations;
+   //     this.codeFragmentEnd = psiElementEnd;
+        if (recommendations != null) {
+            this.recommendations = recommendations.size() > 8 ? recommendations.subList(0, 8) : recommendations;
+        } else this.recommendations = new ArrayList<>();
         checkBoxes = new ArrayList<>();
+
+        // pointers
+        SmartPointerManager smartPointerManager = SmartPointerManager.getInstance(project);
+        this.codeFragmentPointer = smartPointerManager.createSmartPsiElementPointer(psiElement);
+        this.codeFragmentEndPointer = psiElementEnd != null ? smartPointerManager.createSmartPsiElementPointer(psiElementEnd) : null;
+
 
         JPanel controlPanel = new JPanel();
         controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
         //Checkboxes
-        JPanel checkBoxPanel = new JPanel();
-        checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel, BoxLayout.Y_AXIS));
-        for(String s : this.recommendations){
-            JCheckBox checkBox = new JCheckBox(s);
-            checkBox.addActionListener(e -> updateAnnotation());
-            checkBoxes.add(checkBox);
-            checkBoxPanel.add(checkBox);
+        if(recommendations != null && !recommendations.isEmpty()) {
+            JPanel checkBoxPanel = new JPanel();
+            checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel, BoxLayout.Y_AXIS));
+            for (String s : this.recommendations) {
+                JCheckBox checkBox = new JCheckBox(s);
+                checkBox.addActionListener(e -> updateAnnotation());
+                checkBoxes.add(checkBox);
+                checkBoxPanel.add(checkBox);
+            }
+            controlPanel.add(checkBoxPanel);
         }
-        controlPanel.add(checkBoxPanel);
 
         // Textfield for own Features
         textField = new JTextField(15);
@@ -79,7 +91,7 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
         });
 
         JPanel textFieldPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        textFieldPanel.add(new JLabel("Additional:"));
+        textFieldPanel.add(new JLabel("Extra Features:"));
         textFieldPanel.add(textField);
         controlPanel.add(textFieldPanel);
 
@@ -87,6 +99,9 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
 
 
         //Editor
+        PsiElement codeFragment = this.getElement(codeFragmentPointer);
+        if(codeFragment == null) return;
+
         PsiFile psiFile = codeFragment.getContainingFile();
         Document document = psiFile.getViewProvider().getDocument();
       //  Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
@@ -96,6 +111,9 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
         }
 
         if(isCodeBlock){
+            PsiElement codeFragmentEnd = this.getElement(codeFragmentEndPointer);
+            if(codeFragmentEnd == null) return;
+
             int startLine = document.getLineNumber(codeFragment.getTextRange().getStartOffset());
             int endLine = document.getLineNumber(codeFragmentEnd.getTextRange().getStartOffset());
             this.blockStartOffset = document.getLineStartOffset(startLine);
@@ -106,8 +124,7 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
         codeEditor = EditorFactory.getInstance().createViewer(document, codeFragment.getProject());
 
         //Scroll to element in editor
-        int offset = codeFragment.getTextOffset();
-        codeEditor.getCaretModel().moveToOffset(offset);
+        moveCodeEditor();
 
         //Editor settings
         codeEditor.getSettings().setLineNumbersShown(true);
@@ -126,8 +143,48 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
     }
 
     public void moveCodeEditor() {
+        //cleanup
+        MarkupModel markupModel = codeEditor.getMarkupModel();
+        if(rangeHighlighter != null) markupModel.removeHighlighter(rangeHighlighter);
+
+
+        TextAttributes textAttributes = new TextAttributes();
+        textAttributes.setBackgroundColor(new JBColor(new Color(0, 255, 255, 30), new Color(0, 255 ,255, 30)));
+
+        Document doc = codeEditor.getDocument();
+        PsiElement codeFragment = this.getElement(codeFragmentPointer);
+        if(codeFragment == null) return;
+
+        int lineNum = doc.getLineNumber(codeFragment.getTextOffset());
+        int startOffset = doc.getLineStartOffset(lineNum);
+      //  int startOffset = codeFragment.getTextRange().getStartOffset();
+        int endOffset;
+        if(isCodeBlock) {
+            PsiElement codeFragmentEnd = this.getElement(codeFragmentEndPointer);
+            if(codeFragmentEnd == null) return;
+        //    endOffset = codeFragmentEnd.getTextRange().getEndOffset();
+            endOffset = doc.getLineEndOffset(doc.getLineNumber(codeFragmentEnd.getTextOffset()));
+        } else endOffset = doc.getLineEndOffset(lineNum);
+            //endOffset = codeFragment.getTextRange().getEndOffset();
+
+        if (endOffset < startOffset) {
+            System.out.println("Invalid highlighting range, wont create code highlight");
+            return;
+        }
+
+        rangeHighlighter = markupModel.addRangeHighlighter(
+                startOffset,
+                endOffset,
+                HighlighterLayer.SELECTION - 1,
+                textAttributes,
+                HighlighterTargetArea.EXACT_RANGE
+        );
+
+
+        // Actually move the editor
         int offset = codeFragment.getTextOffset();
         codeEditor.getCaretModel().moveToOffset(offset);
+        codeEditor.getScrollingModel().scrollToCaret(ScrollType.CENTER);
     }
 
 
@@ -189,7 +246,11 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
 
     private void initializeLine(String featureString){
         Document document = codeEditor.getDocument();
-        int startOffset = codeFragment.getTextRange().getStartOffset();
+        PsiElement codeFragment = this.getElement(codeFragmentPointer);
+        if(codeFragment == null) return;
+
+        int lineOffset = document.getLineNumber(codeFragment.getTextOffset());
+        int startOffset = document.getLineEndOffset(lineOffset);
 
         String text = String.format(" //&line[%s]", featureString);
         document.insertString(startOffset, text);
@@ -231,7 +292,19 @@ public class RecommendationDialogPanel extends JPanel implements Disposable {
         }
     }
 
+    // this gets the first element
     public PsiElement getElement() {
-        return codeFragment;
+        if(codeFragmentPointer == null) return null;
+        PsiElement element = codeFragmentPointer.getElement();
+        if(element == null || !element.isValid()) return null;
+        return element;
     }
+
+    public PsiElement getElement(SmartPsiElementPointer<? extends PsiElement> pointer) {
+        if(pointer == null) return null;
+        PsiElement element = pointer.getElement();
+        if(element == null || !element.isValid()) return null;
+        return element;
+    }
+
 }

@@ -29,7 +29,7 @@ public class InitializationActivity implements ProjectActivity {
             project.getService(CommitWatcher.class).registerListener(new FeatRacerCommitListener());
 
             // Show notification to show test dialog
-            //FeatRacerTest.show(project);
+            FeatRacerTest.show(project);
         });
 
         return null;

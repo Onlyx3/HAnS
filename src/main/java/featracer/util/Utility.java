@@ -38,7 +38,8 @@ public class Utility {
         String fileName = new File(split[0]).getName();
         String lines = split[1];
 
-        String newLocation = fileName.substring(0, fileName.lastIndexOf('.')) + ":" + lines;
+      //  String newLocation = fileName.substring(0, fileName.lastIndexOf('.')) + ":" + lines;
+        String newLocation = fileName + ":" + lines;
         return makeRecommendationData(project, newLocation, features);
     }
 
@@ -60,7 +61,7 @@ public class Utility {
                 String[] lineSplit = lineString.split("-");
                 if (lineSplit.length != 2) return null; //Wrong format
                 if(lineSplit[0].equals(lineSplit[1])) {
-                    startLine = Integer.parseInt(lineString);
+                    startLine = Integer.parseInt(lineSplit[0]);
                     endLine = startLine;
                 } else {
                     isCodeBlock = true;
@@ -82,37 +83,57 @@ public class Utility {
             //Logic to find and return single lines
             PsiElement line = ApplicationManager.getApplication().runReadAction(
                     (Computable<PsiElement>) () -> {
-                       PsiClass psiClass = findPsiClassbyName(project, className);
+                    /*   PsiClass psiClass = findPsiClassbyName(project, className);
                         if (psiClass == null || psiClass.getContainingFile() == null) return null;
-                        PsiFile  psiFile = psiClass.getContainingFile();
+                        PsiFile  psiFile = psiClass.getContainingFile(); */
+                        System.out.println("Attempting to find PsiFile for " + className);
+                        PsiFile psiFile = findPsiFileByClassName(project, className);
+                        System.out.println("PsiFile for " + className + " found: " + psiFile);
+                        if(psiFile == null) return null;
                         Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
-                        if (document == null || startLine > document.getLineCount()) return null;
+                        if (document == null || startLine >= document.getLineCount()) return null;
 
                         return psiFile.findElementAt(document.getLineStartOffset(startLine));
                     }
             );
-
+            if(line == null) return null;
+            System.out.println("For the line " + className + ":" + startLine + "-" + endLine + " we got the following startelem: " + line.toString() + " " + line.getTextOffset());
             return new RecommendationData(line, features, false, null);
 
         } else { // Logic for Code Blocks
             PsiElement[] elements = ApplicationManager.getApplication().runReadAction(
                     (Computable<PsiElement[]>) () -> {
-                        PsiClass psiClass = findPsiClassbyName(project, className);
+              /*          PsiClass psiClass = findPsiClassbyName(project, className);
                         if (psiClass == null || psiClass.getContainingFile() == null) return null;
-                        PsiFile  psiFile = psiClass.getContainingFile();
+                        PsiFile  psiFile = psiClass.getContainingFile(); */
+                        System.out.println("Attempting to find PsiFile for " + className);
+                        PsiFile psiFile = findPsiFileByClassName(project, className);
+                        if(psiFile == null) return null;
+                        System.out.println("PsiFile for " + className + " found: " + psiFile.getClass());
                         Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
-                        if (document == null || startLine > document.getLineCount() || endLine > document.getLineCount()) return null;
+                        if (document == null || startLine >= document.getLineCount() || endLine >= document.getLineCount()) return null;
                         PsiElement startElem =  psiFile.findElementAt(document.getLineStartOffset(startLine));
                         PsiElement endElem =  psiFile.findElementAt(document.getLineStartOffset(endLine));
                         return new PsiElement[]{startElem, endElem};
             }
             );
-
-            if (elements == null) return null;
+            if(elements == null || elements[0] == null || elements[1] == null) return null;
+            System.out.println("For the block " + className + ":" + startLine + "-" + endLine + " we got the following startelem: " + elements[0].toString() + " " + elements[0].getTextOffset());
             return new RecommendationData(elements[0], features, true, elements[1]);
         }
 
 
+    }
+
+    private static PsiFile findPsiFileByClassName(Project project, String className) {
+        GlobalSearchScope searchScope = GlobalSearchScope.projectScope(project);
+        Collection<VirtualFile> virtualFiles = FilenameIndex.getVirtualFilesByName(className, searchScope);
+
+        if (virtualFiles.size() == 1) {
+            VirtualFile virtualFile = virtualFiles.iterator().next();
+
+            return PsiManager.getInstance(project).findFile(virtualFile);
+        } else return null;
     }
 
     private static PsiClass findPsiClassbyName(Project project, String className) {
@@ -166,8 +187,9 @@ public class Utility {
     }
 
     public static void checkAndInvokeRecommendationWizard(Project project, List<RecommendationData> list) {
-        if(!list.isEmpty()) new RecommendationDialogCardWizard(project, list).show();
-        else System.out.print("No new recommendations found :)");
+        //if(list != null && !list.isEmpty()) new RecommendationDialogCardWizard(project, list).show();
+        //else System.out.print("No new recommendations found :)");
+        new RecommendationDialogCardWizard(project, list).show();
     }
 
     public static String getLatestCommitHash(CheckinProjectPanel panel) {

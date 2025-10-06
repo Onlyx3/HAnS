@@ -29,7 +29,7 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
     private JButton previousButton;
     private JButton nextButton;
 
-    public RecommendationDialogCardWizard(@Nullable Project project, @NotNull List<RecommendationData> recommendations) {
+    public RecommendationDialogCardWizard(@Nullable Project project, @Nullable List<RecommendationData> recommendations) {
         super(project, true);
         this.project = project;
         this.recommendations = recommendations;
@@ -45,7 +45,8 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
 
         for(int i = 0 ; i < recommendations.size(); i++) {
             RecommendationData rec = recommendations.get(i);
-            if(rec.getElement() == null || rec.getFeatures().isEmpty()) continue;
+            //if(rec.getElement() == null || rec.getFeatures().isEmpty()) continue;
+            if(rec == null || rec.getElement() == null) continue;
             //JComponent panelStep = new RecommendationDialogPanel(project, rec.getElement(), rec.getFeatures()).createCenterPanel();
             RecommendationDialogPanel panelStep = new RecommendationDialogPanel(project, rec.getElement(), rec.getFeatures(), rec.getElementEnd(), rec.isCodeBlock());
             panels.add(panelStep);
@@ -53,7 +54,13 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
             panelCount++;
         }
         System.out.print("Created Recommendation View for " + panelCount + " recommendations!");
-        if(!panels.isEmpty()) cardLayout.show(panel, "0");
+        if(panels.isEmpty()) {
+            dispose();
+            return null;
+        }
+        cardLayout.show(panel, "0");
+        panels.getFirst().moveCodeEditor();
+        setTitle("Recommendations: " + recommendations.get(current).getElement().getContainingFile().toString());
         return panel;
     }
 
@@ -108,6 +115,7 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
             cardLayout.show(panel, String.valueOf(current));
             panels.get(current).moveCodeEditor();
             updateButton();
+            setTitle("Recommendations: " + recommendations.get(current).getElement().getContainingFile().toString());
         }
     }
     private void next() {
@@ -116,6 +124,7 @@ public class RecommendationDialogCardWizard extends DialogWrapper {
             cardLayout.show(panel, String.valueOf(current));
             panels.get(current).moveCodeEditor();
             updateButton();
+            setTitle("Recommendations: " + recommendations.get(current).getElement().getContainingFile().toString());
         } else {
             close(0);
         }
