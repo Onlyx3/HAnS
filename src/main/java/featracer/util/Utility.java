@@ -1,32 +1,26 @@
 package featracer.util;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
-import com.intellij.openapi.vcs.ProjectLevelVcsManager;
-import com.intellij.openapi.vcs.VcsRoot;
 import com.intellij.openapi.vcs.impl.ProjectLevelVcsManagerImpl;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.PsiShortNamesCache;
-import com.intellij.util.SlowOperations;
 import featracer.data.RecommendationData;
 import featracer.ui.RecommendationDialogCardWizard;
 import git4idea.repo.GitRepository;
 import git4idea.repo.GitRepositoryManager;
-import org.jetbrains.annotations.NotNull;
-import se.isselab.HAnS.featureModel.psi.FeatureModelFeature;
-import se.isselab.HAnS.featureModel.psi.FeatureModelTypes;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
+
 
 public class Utility {
 
@@ -43,8 +37,86 @@ public class Utility {
         return makeRecommendationData(project, newLocation, features);
     }
 
+    private static RecommendationData makeRecommendationData(Project project, String location, List<String> features) {
+        System.out.println("Making recommendation data for " + location);
+        String[] split = location.split(":");
+        if(split.length != 2) {
+            System.out.println("Skip: Incorrect format for " + location);
+            return null;
+        }
+        String className = split[0];
+        String lineString = split[1];
 
-    public static RecommendationData makeRecommendationData(Project project, String location, List<String> features) {
+        boolean isCodeBlock;
+        int startLine_1;
+        int endLine_1;
+
+        try {
+            if(lineString.contains("-")) {
+                String[] lineSplit = lineString.split("-");
+                if (lineSplit.length != 2) {
+                    System.out.println("Skip: Line range not in correct format for " + location);
+                    return null;
+                }
+                startLine_1 = Integer.parseInt(lineSplit[0]);
+                endLine_1 = Integer.parseInt(lineSplit[1]);
+                isCodeBlock = (startLine_1 != endLine_1);
+            } else {
+                startLine_1 = Integer.parseInt(lineString);
+                endLine_1 = startLine_1;
+                isCodeBlock = false;
+            }
+        } catch (NumberFormatException e) {
+            return null;
+        }
+
+        if(startLine_1 < 1 || endLine_1 < startLine_1) {
+            return null;
+        }
+
+        return ApplicationManager.getApplication().runReadAction((Computable<RecommendationData>) () -> {
+            PsiFile psiFile = findPsiFileByClassName(project, className);
+            if(psiFile == null) {
+                System.out.println("Skip: PsiFile not found for " + className);
+                return null;
+            }
+
+            Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
+            if(document == null) {
+                System.out.println("Skip: Document not found for " + className);
+                return null;
+            }
+
+            int lineCount = document.getLineCount();
+            if (lineCount == 0 || startLine_1 > lineCount || endLine_1 > lineCount) {
+                System.out.println("Skip: Location not within bounds of document");
+                return null; //reminder: start/endLine_1 is 1-base, doc is 0
+            }
+
+            //find stuff
+            int startLine_0 = startLine_1 - 1;
+            PsiElement startElement = psiFile.findElementAt(document.getLineStartOffset(startLine_0));
+            if(startElement == null) {
+                System.out.println("Skip: Start PsiElement not found for " + className);
+                return null;
+            }
+
+            if(!isCodeBlock) {
+                return new RecommendationData(startElement, features, false, null);
+            } else {
+                int endLine_0 = endLine_1 - 1;
+                PsiElement endElement = psiFile.findElementAt(document.getLineEndOffset(endLine_0)); // TODO: check if this needs to be getLineStartOffset
+                if(endElement == null) {
+                    System.out.println("Skip: End PsiElement not found for " + className);
+                    return null;
+                }
+                return new RecommendationData(startElement, features, true, endElement);
+            }
+        });
+    }
+
+/*
+    private static RecommendationData makeRecommendationData(Project project, String location, List<String> features) {
         String[] split = location.split(":");
         if (split.length != 2) return null; // Wrong Format
 
@@ -83,9 +155,6 @@ public class Utility {
             //Logic to find and return single lines
             PsiElement line = ApplicationManager.getApplication().runReadAction(
                     (Computable<PsiElement>) () -> {
-                    /*   PsiClass psiClass = findPsiClassbyName(project, className);
-                        if (psiClass == null || psiClass.getContainingFile() == null) return null;
-                        PsiFile  psiFile = psiClass.getContainingFile(); */
                         System.out.println("Attempting to find PsiFile for " + className);
                         PsiFile psiFile = findPsiFileByClassName(project, className);
                         System.out.println("PsiFile for " + className + " found: " + psiFile);
@@ -103,9 +172,6 @@ public class Utility {
         } else { // Logic for Code Blocks
             PsiElement[] elements = ApplicationManager.getApplication().runReadAction(
                     (Computable<PsiElement[]>) () -> {
-              /*          PsiClass psiClass = findPsiClassbyName(project, className);
-                        if (psiClass == null || psiClass.getContainingFile() == null) return null;
-                        PsiFile  psiFile = psiClass.getContainingFile(); */
                         System.out.println("Attempting to find PsiFile for " + className);
                         PsiFile psiFile = findPsiFileByClassName(project, className);
                         if(psiFile == null) return null;
@@ -123,68 +189,35 @@ public class Utility {
         }
 
 
-    }
+    }*/
 
     private static PsiFile findPsiFileByClassName(Project project, String className) {
         GlobalSearchScope searchScope = GlobalSearchScope.projectScope(project);
         Collection<VirtualFile> virtualFiles = FilenameIndex.getVirtualFilesByName(className, searchScope);
+        System.out.println("Found " + virtualFiles.size() + " files for " + className);
 
-        if (virtualFiles.size() == 1) {
-            VirtualFile virtualFile = virtualFiles.iterator().next();
+        if(virtualFiles.isEmpty()) return null;
 
-            return PsiManager.getInstance(project).findFile(virtualFile);
-        } else return null;
+        Set<String> paths = new HashSet<>();
+        VirtualFile rf = null;
+
+        for(VirtualFile virtualFile : virtualFiles) {
+            String path = virtualFile.getCanonicalPath();
+            if(path != null) {
+                paths.add(path);
+                rf = virtualFile;
+            }
+        }
+
+        if(paths.size() == 1 && rf != null) {
+            return PsiManager.getInstance(project).findFile(rf);
+        }
+        return null;
     }
 
-    private static PsiClass findPsiClassbyName(Project project, String className) {
-        GlobalSearchScope searchScope = GlobalSearchScope.projectScope(project);
 
-        PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(className, searchScope);
-        if(psiClass != null) return psiClass;
 
-        PsiClass[] classes = PsiShortNamesCache.getInstance(project).getClassesByName(className, searchScope);
-        if(classes.length == 1) return classes[0];
-        else return null; // Return null when class not found or ambiguous
-    }
 
-    /**
-     *
-     * @param project
-     * @param location String in the format "package.classname:codeline"
-     * @return PsiElement with specified location, null if not found
-     */
-    @Deprecated
-    public static PsiElement findPsiElementFromLocation(Project project, String location) {
-        // Format Input
-        String[] split = location.split(":");
-        if (split.length != 2) return null;
-
-        String className = split[0];
-        int lineNumber = Integer.parseInt(split[1]);
-        if (lineNumber < 1) return null;
-        return ApplicationManager.getApplication().runReadAction(
-                (Computable<PsiElement>) () -> {
-                    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
-                    GlobalSearchScope searchScope = GlobalSearchScope.projectScope(project);
-                    PsiClass psiClass = psiFacade.findClass(className, searchScope);
-
-                    if (psiClass == null || psiClass.getContainingFile() == null) return null;
-                    PsiFile psiFile = psiClass.getContainingFile();
-
-                    Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
-                    if (document == null) return null;
-
-                    if (lineNumber > document.getLineCount()) return null;
-
-                    return psiFile.findElementAt(document.getLineStartOffset(lineNumber));
-
-                }
-        );
-       /* GlobalSearchScope searchScope = GlobalSearchScope.allScope(project);
-        PsiFile[] psiFile = FilenameIndex.getFilesByName(project, className, searchScope); // find non deprecated way to do this
-
-        if (psiFile.length == 0) return null;*/
-    }
 
     public static void checkAndInvokeRecommendationWizard(Project project, List<RecommendationData> list) {
         //if(list != null && !list.isEmpty()) new RecommendationDialogCardWizard(project, list).show();

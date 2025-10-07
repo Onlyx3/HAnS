@@ -57,7 +57,7 @@ public class FeatRacerTest {
     //    RecommendationData testLine = Utility.makeRecommendationData(project, "featracer.test.FeatRacerTest:37", testfeatures);
     //    RecommendationData outOfBounds = Utility.makeRecommendationData(project, "featracer.test.FeatRacerTest:2222",  testfeatures);
     //    RecommendationData classpathinvalid = Utility.makeRecommendationData(project, "thisdoesntexist:2", testfeatures);
-        RecommendationData testBlock = Utility.translateFeatracerLocation(project, "test/testing/FeatRacerTest.java::60-109", testfeatures);
+        RecommendationData testBlock = Utility.translateFeatracerLocation(project, "test/testing/FeatRacerTest.java::60-72", testfeatures);
         RecommendationData testLine = Utility.translateFeatracerLocation(project, "ihopethisisirrelevant/FeatRacerTest.java::64-64", testfeatures);
 
 
