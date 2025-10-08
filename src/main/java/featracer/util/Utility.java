@@ -75,26 +75,75 @@ public class Utility {
         }
 
         return ApplicationManager.getApplication().runReadAction((Computable<RecommendationData>) () -> {
-            PsiFile psiFile = findPsiFileByClassName(project, className);
-            if(psiFile == null) {
-                System.out.println("Skip: PsiFile not found for " + className);
-                return null;
-            }
+                    PsiFile psiFile = findPsiFileByClassName(project, className);
+                    if (psiFile == null) {
+                        System.out.println("Skip: PsiFile not found for " + className);
+                        return null;
+                    }
 
-            Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
-            if(document == null) {
-                System.out.println("Skip: Document not found for " + className);
-                return null;
-            }
+                    Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
+                    if (document == null) {
+                        System.out.println("Skip: Document not found for " + className);
+                        return null;
+                    }
 
-            int lineCount = document.getLineCount();
-            if (lineCount == 0 || startLine_1 > lineCount || endLine_1 > lineCount) {
-                System.out.println("Skip: Location not within bounds of document");
-                return null; //reminder: start/endLine_1 is 1-base, doc is 0
-            }
+                    int lineCount = document.getLineCount();
+                    if (lineCount == 0 || startLine_1 > lineCount || endLine_1 > lineCount) {
+                        System.out.println("Skip: Location not within bounds of document");
+                        return null; //reminder: start/endLine_1 is 1-base, doc is 0
+                    }
 
-            //find stuff
-            int startLine_0 = startLine_1 - 1;
+                    //find stuff
+                    int startLine_0 = startLine_1 - 1;
+                    int endLine_0 = endLine_1 - 1;
+
+                    int startLineStart = document.getLineStartOffset(startLine_0);
+                    int startLineEnd = document.getLineEndOffset(startLine_0);
+                    PsiElement startElement = null;
+
+                    for (int o = startLineStart; o < Math.min(startLineEnd, document.getTextLength()); o++) {
+                        PsiElement e = psiFile.findElementAt(o);
+                        if (e == null) continue;
+                        int eStart = e.getTextRange().getStartOffset();
+                        if (eStart >= startLineStart && eStart < startLineEnd) {
+                            startElement = e;
+                            break;
+                        }
+                    }
+
+                    if (startElement == null) startElement = psiFile.findElementAt(startLineStart);
+                    if (startElement == null) {
+                        System.out.println("Skip: Element not found for " + className);
+                        return null;
+                    }
+
+                    if (!isCodeBlock) {
+                        return new RecommendationData(startElement, features, false, null);
+                    } else {
+                        int endLineStart = document.getLineStartOffset(endLine_0);
+                        int endLineEnd = document.getLineEndOffset(endLine_0);
+                        PsiElement endElement = null;
+
+                        for (int o = Math.min(endLineEnd - 1, document.getTextLength() - 1); o >= endLineStart; o--) {
+                            PsiElement e = psiFile.findElementAt(o);
+                            if (e == null) continue;
+                            int eEnd = e.getTextRange().getEndOffset();
+                            if (eEnd <= endLineEnd && eEnd > endLineStart) {
+                                endElement = e;
+                                break;
+                            }
+                        }
+                        if (endElement == null) endElement = psiFile.findElementAt(endLineStart);
+                        if (endElement == null) {
+                            System.out.println("Skip: Element not found for " + className);
+                            return null;
+                        }
+                        return new RecommendationData(startElement, features, true, endElement);
+                    }
+                });
+
+
+            /*
             PsiElement startElement = psiFile.findElementAt(document.getLineStartOffset(startLine_0));
             if(startElement == null) {
                 System.out.println("Skip: Start PsiElement not found for " + className);
@@ -104,15 +153,14 @@ public class Utility {
             if(!isCodeBlock) {
                 return new RecommendationData(startElement, features, false, null);
             } else {
-                int endLine_0 = endLine_1 - 1;
-                PsiElement endElement = psiFile.findElementAt(document.getLineEndOffset(endLine_0)); // TODO: check if this needs to be getLineStartOffset
+                PsiElement endElement = psiFile.findElementAt(document.getLineStartOffset(endLine_0)); // TODO:
                 if(endElement == null) {
                     System.out.println("Skip: End PsiElement not found for " + className);
                     return null;
                 }
                 return new RecommendationData(startElement, features, true, endElement);
             }
-        });
+        });*/
     }
 
 /*
@@ -209,7 +257,7 @@ public class Utility {
             }
         }
 
-        if(paths.size() == 1 && rf != null) {
+        if(paths.size() == 1) {
             return PsiManager.getInstance(project).findFile(rf);
         }
         return null;
