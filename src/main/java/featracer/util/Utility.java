@@ -138,6 +138,7 @@ public class Utility {
                             System.out.println("Skip: Element not found for " + className);
                             return null;
                         }
+                        if(endElement == startElement) return new RecommendationData(startElement, features, false, null);
                         return new RecommendationData(startElement, features, true, endElement);
                     }
                 });
