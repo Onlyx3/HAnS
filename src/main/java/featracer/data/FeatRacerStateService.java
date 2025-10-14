@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
         name = "featracer.data.FeatRacerStateService",
         storages = @Storage("state.xml")
 )
-public class FeatRacerStateService implements PersistentStateComponent<FeatRacerStateService> {
+public final class FeatRacerStateService implements PersistentStateComponent<FeatRacerStateService> {
 
     public boolean isInitialized = false;
     public String allowedFileExtensions;

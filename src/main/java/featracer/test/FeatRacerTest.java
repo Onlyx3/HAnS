@@ -5,27 +5,18 @@ import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import featracer.data.FeatRacerStateService;
 import featracer.data.RecommendationData;
-import featracer.logic.ClassifierManager;
 import featracer.util.Utility;
 import org.jetbrains.annotations.NotNull;
-import se.gu.api.FeatRacerAPI;
 
-import java.io.File;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class FeatRacerTest {
 
     public static void show(@NotNull Project project) {
+        System.out.println(project.getName());
         Notification notification = NotificationGroupManager.getInstance()
                 .getNotificationGroup("featracer.test")
                 .createNotification("Test(FeatRacer", NotificationType.INFORMATION);
@@ -41,6 +32,70 @@ public class FeatRacerTest {
     }
 
 
+    public static void runTest(@NotNull Project project) {
+        if(project.getName().equalsIgnoreCase("Snake1")) {
+            warmup(project);
+        } else if(project.getName().equalsIgnoreCase("Snake2")) {
+            task3(project);
+        }
+    }
+
+    public static void warmup(@NotNull Project project) {
+        List<String> features = new ArrayList<>();
+        features.add("Snake");
+        features.add("Tail");
+        features.add("Position");
+        RecommendationData first = Utility.translateFeatracerLocation(project,"ThreadsController.java::174-192", features);
+
+        List<String> features2 = new ArrayList<>();
+        features2.add("Food");
+        RecommendationData second = Utility.translateFeatracerLocation(project, "SquareToLightUp.java::5-5", features2);
+
+        List<String> features3 = new ArrayList<>();
+        features3.add("Controls");
+        features3.add("Move");
+        RecommendationData third = Utility.translateFeatracerLocation(project, "KeyboardListener.java::9-31", features3);
+
+        List<RecommendationData> list = new ArrayList<>();
+        list.add(first);
+        list.add(second);
+        list.add(third);
+
+        Utility.checkAndInvokeRecommendationWizard(project, list);
+
+    }
+
+    public static void task3(@NotNull Project project) {
+        List<String> features1 = new ArrayList<>();
+        features1.add("Position");
+        features1.add("Move");
+        RecommendationData first = Utility.translateFeatracerLocation(project,"ThreadsController.java::24-29", features1); //Block 1 correct
+
+        RecommendationData second = Utility.translateFeatracerLocation(project, "ThreadsController.java::31-32", new ArrayList<>()); // Block do themselves
+
+        List<String> features3 = new ArrayList<>();
+        features3.add("Move");
+        features3.add("Collision");
+        features3.add("Tail");
+        RecommendationData third = Utility.translateFeatracerLocation(project, "ThreadsController.java::37-43",features3); //Block reject
+
+        RecommendationData fourth = Utility.translateFeatracerLocation(project, "Window.java::65-65", new ArrayList<>()); //Line do themselves reject
+
+        // Line accept
+        List<String> features5 = new ArrayList<>();
+        features5.add("Controls");
+        RecommendationData fifth = Utility.translateFeatracerLocation(project, "Window.java::68-68", features5);
+
+        List<RecommendationData> list = new ArrayList<>();
+        list.add(first);
+        list.add(second);
+        list.add(third);
+        list.add(fourth);
+        list.add(fifth);
+
+        Utility.checkAndInvokeRecommendationWizard(project, list);
+    }
+/*
     public static void runTest(@NotNull Project project) {
         List<String> testfeatures = new ArrayList<>();
         testfeatures.add("TestFeature");
@@ -70,7 +125,7 @@ public class FeatRacerTest {
 
         Utility.checkAndInvokeRecommendationWizard(project, list);
     }
-/*
+
     public static void runTest(@NotNull Project project) {
         int startingCommit = 1;
         String projectPath = project.getBasePath();
