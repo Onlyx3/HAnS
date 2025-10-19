@@ -79,7 +79,7 @@ public class FeatRacerTest {
         features3.add("Tail");
         RecommendationData third = Utility.translateFeatracerLocation(project, "ThreadsController.java::37-43",features3); //Block reject
 
-        RecommendationData fourth = Utility.translateFeatracerLocation(project, "Window.java::65-65", new ArrayList<>()); //Line do themselves reject
+        RecommendationData fourth = Utility.translateFeatracerLocation(project, "Window.java::63-63", new ArrayList<>()); //Line do themselves reject
 
         // Line accept
         List<String> features5 = new ArrayList<>();
